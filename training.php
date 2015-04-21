@@ -136,3 +136,53 @@ function training_civicrm_preProcess($formName, &$form) {
 }
 
 */
+
+/**
+ *Fetches a county name for a given postal code
+ *
+ *@param string $postal_code
+ *@retrun mixed Boolean False on error, county
+ *name as string on success
+ */
+
+ 
+ function training_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+  if (($op == 'create' || $op == 'edit')  && $objectName == 'Address') {
+    
+    $zip = $objectRef->postal_code;
+  $county = _trainingFetchCountyByPostalCode($zip);
+   $id = $objectRef->contact_id;
+   //print $id;
+  // exit;
+  if (isset($county)){
+  
+         $result = civicrm_api3('CustomValue', 'create', array(
+    'entity_id' => $id,
+     'custom_8'  =>$county
+    
+    ));
+  }else{
+     print "error";
+  }
+ 
+  
+    
+  }
+  
+ }
+ 
+ 
+ function _trainingFetchCountyByPostalCode($postal_code){
+  
+ $url = "http://www.zipwise.com/webservices/zipinfo.php?key=u5maw9jgh0oerddb&zip=$postal_code&format=json";
+ $result = CRM_Utils_HttpClient::singleton()->get($url) ;
+//$test=function_exists("curl_init");
+
+// var_dump($result);
+$result = json_decode($result[1], true);
+$county = $result['results']['county'];
+return $county;
+//print ($result[1]);
+ //exit;
+ 
+ }
